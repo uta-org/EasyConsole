@@ -37,6 +37,11 @@ namespace EasyConsole
 
         public virtual Program Run()
         {
+            Console.CancelKeyPress += delegate
+            {
+                NavigateBack();
+            };
+
             try
             {
                 Console.Title = Title;
@@ -104,6 +109,7 @@ namespace EasyConsole
 
             Console.Clear();
             CurrentPage.Display();
+
             return CurrentPage as T;
         }
 
@@ -113,6 +119,7 @@ namespace EasyConsole
 
             Console.Clear();
             CurrentPage.Display();
+
             return CurrentPage;
         }
     }
