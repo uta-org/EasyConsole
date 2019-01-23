@@ -7,6 +7,8 @@ namespace EasyConsole
 {
     public abstract class Program
     {
+        public bool IsExiting { get; private set; }
+
         protected string Title { get; set; }
 
         public bool BreadcrumbHeader { get; private set; }
@@ -33,7 +35,7 @@ namespace EasyConsole
             BreadcrumbHeader = breadcrumbHeader;
         }
 
-        public virtual void Run()
+        public virtual Program Run()
         {
             try
             {
@@ -49,9 +51,12 @@ namespace EasyConsole
             {
                 if (Debugger.IsAttached)
                 {
+                    IsExiting = true;
                     Input.ReadString("Press [Enter] to exit");
                 }
             }
+
+            return this;
         }
 
         public void AddPage(Page page)

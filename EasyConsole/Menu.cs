@@ -21,7 +21,7 @@ namespace EasyConsole
             }
             int choice = Input.ReadInt("Choose an option:", min: 1, max: Options.Count);
 
-            Options[choice - 1].Callback();
+            Options[choice - 1].Callback?.Invoke();
         }
 
         public Menu Add(string option, Action callback)
