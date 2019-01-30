@@ -6,10 +6,13 @@ namespace EasyConsole
     {
         protected Menu Menu { get; set; }
 
+        protected static Program CurrentProgram { get; private set; }
+
         public MenuPage(string title, Program program, params Option[] options)
             : base(title, program)
         {
             Menu = new Menu();
+            CurrentProgram = program;
 
             SetOptions(options);
         }
@@ -23,14 +26,15 @@ namespace EasyConsole
                 Menu.Add(option);
         }
 
-        public override void Display()
+        public override void Display(string caption = "Choose an option: ")
         {
             base.Display();
 
             if (Program.NavigationEnabled && !Menu.Contains("Go back"))
                 Menu.Add("Go back", () => { Program.NavigateBack(); });
 
-            Menu.Display();
+            Menu.SetSelectOption(SelectedOption);
+            Menu.Display(caption);
         }
     }
 }

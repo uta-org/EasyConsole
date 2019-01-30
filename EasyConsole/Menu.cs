@@ -8,20 +8,32 @@ namespace EasyConsole
     {
         private IList<Option> Options { get; set; }
 
+        private int? SelectedOption { get; set; }
+
         public Menu()
         {
             Options = new List<Option>();
         }
 
-        public void Display()
+        public void SetSelectOption(int? option)
+        {
+            if (!option.HasValue)
+                return;
+
+            if (option.Value < 0)
+                SelectedOption = Options.Count + option.Value - 1;
+            else
+                SelectedOption = option.Value;
+        }
+
+        public void Display(string caption = "Choose an option:")
         {
             for (int i = 0; i < Options.Count; i++)
-            {
                 Console.WriteLine("{0}. {1}", i + 1, Options[i].Name);
-            }
-            int choice = Input.ReadInt("Choose an option:", min: 1, max: Options.Count);
 
-            Options[choice - 1].Callback?.Invoke();
+            int choice = SelectedOption.HasValue ? SelectedOption.Value : (Input.ReadInt(caption, min: 1, max: Options.Count) - 1);
+
+            Options[choice].Callback?.Invoke();
         }
 
         public Menu Add(string option, Action callback)

@@ -1,4 +1,5 @@
 ﻿using System;
+using uzLib.Lite.Core;
 
 namespace EasyConsole
 {
@@ -25,13 +26,31 @@ namespace EasyConsole
 
         public static int ReadInt()
         {
-            string input = Console.ReadLine();
+            var output = ConsoleOutput.ReadLineOrKey();
+            string input;
+
+            if (output.IsExitKey())
+            {
+                Program.Instance.NavigateBack();
+                return 0;
+            }
+            else
+                input = output.GetValue();
+
             int value;
 
             while (!int.TryParse(input, out value))
             {
                 Output.DisplayPrompt("Please enter an integer");
-                input = Console.ReadLine();
+                output = ConsoleOutput.ReadLineOrKey();
+
+                if (output.IsExitKey())
+                {
+                    Program.Instance.NavigateBack();
+                    return 0;
+                }
+                else
+                    input = output.GetValue();
             }
 
             return value;
@@ -40,7 +59,16 @@ namespace EasyConsole
         public static string ReadString(string prompt)
         {
             Output.DisplayPrompt(prompt);
-            return Console.ReadLine();
+
+            var output = ConsoleOutput.ReadLineOrKey();
+
+            if (output.IsExitKey())
+            {
+                Program.Instance.NavigateBack();
+                return null;
+            }
+            else
+                return output.GetValue();
         }
 
         public static TEnum ReadEnum<TEnum>(string prompt) where TEnum : struct, IConvertible, IComparable, IFormattable

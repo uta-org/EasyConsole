@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using uzLib.Lite.Core;
 
 namespace EasyConsole
 {
-    public abstract class Program
+    public abstract class Program : Singleton<Program>
     {
         public bool IsExiting { get; private set; }
 
@@ -37,10 +38,11 @@ namespace EasyConsole
 
         public virtual Program Run()
         {
-            Console.CancelKeyPress += delegate
-            {
-                NavigateBack();
-            };
+            // This creates a bug
+            //Console.CancelKeyPress += delegate
+            //{
+            //    NavigateBack();
+            //};
 
             try
             {
@@ -115,9 +117,21 @@ namespace EasyConsole
 
         public Page NavigateBack()
         {
+            return NavigateBack(null);
+        }
+
+        public Page NavigateBack(int option)
+        {
+            return NavigateBack((int?)option);
+        }
+
+        private Page NavigateBack(int? option = null)
+        {
             History.Pop();
 
             Console.Clear();
+
+            CurrentPage.SelectedOption = option;
             CurrentPage.Display();
 
             return CurrentPage;
