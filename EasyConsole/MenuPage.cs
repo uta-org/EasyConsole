@@ -8,6 +8,10 @@ namespace EasyConsole
 
         protected static Program CurrentProgram { get; private set; }
 
+        private bool IsEmpty { get; set; }
+
+        public Action EmptyAction { get; protected set; }
+
         public MenuPage(string title, Program program, params Option[] options)
             : base(title, program)
         {
@@ -20,7 +24,12 @@ namespace EasyConsole
         public void SetOptions(params Option[] options)
         {
             if (options == null)
-                throw new ArgumentNullException("options");
+            {
+                //throw new ArgumentNullException("options");
+
+                IsEmpty = true;
+                return;
+            }
 
             foreach (var option in options)
                 Menu.Add(option);
@@ -28,6 +37,12 @@ namespace EasyConsole
 
         public override void Display(string caption = "Choose an option: ")
         {
+            if (IsEmpty)
+            {
+                EmptyAction?.Invoke();
+                return;
+            }
+
             base.Display();
 
             if (Program.NavigationEnabled && !Menu.Contains("Go back"))
