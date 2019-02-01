@@ -35,21 +35,23 @@ namespace EasyConsole
 
         public static int[] ReadInts(int min, int max)
         {
-            IEnumerable<int> values = ReadInts();
+            int[] values = ReadInts().ToArray();
 
             while (values.Any(value => value < min || value > max))
             {
                 Output.DisplayPrompt("Please enter an integer/s between {0} and {1} (inclusive)", min, max);
-                values = ReadInts();
+                values = ReadInts().ToArray();
             }
 
-            return values.ToArray();
+            return values;
         }
 
         public static IEnumerable<int> ReadInts()
         {
             var output = ConsoleOutput.ReadLineOrKey();
+
             string input;
+            bool isMultiple;
 
             if (output.IsExitKey())
             {
@@ -57,28 +59,32 @@ namespace EasyConsole
                 yield break;
             }
             else
+            {
                 input = output.GetValue();
+                isMultiple = input.CheckCommaNumbers();
+            }
 
             int value;
-            bool isMultiple;
+            bool firstParse = int.TryParse(input, out value);
 
-            do
-            {
-                Output.DisplayPrompt("Please enter an integer");
-                output = ConsoleOutput.ReadLineOrKey();
+            if (!firstParse)
+                do
+                {
+                    Output.DisplayPrompt("Please enter an integer");
+                    output = ConsoleOutput.ReadLineOrKey();
 
-                if (output.IsExitKey())
-                {
-                    Program.Instance.NavigateBack();
-                    yield break;
+                    if (output.IsExitKey())
+                    {
+                        Program.Instance.NavigateBack();
+                        yield break;
+                    }
+                    else
+                    {
+                        input = output.GetValue();
+                        isMultiple = input.CheckCommaNumbers();
+                    }
                 }
-                else
-                {
-                    input = output.GetValue();
-                    isMultiple = input.SeparatedCommaNumbers();
-                }
-            }
-            while (!int.TryParse(input, out value) || isMultiple);
+                while (!int.TryParse(input, out value) || isMultiple);
 
             if (!isMultiple)
                 yield return value;
