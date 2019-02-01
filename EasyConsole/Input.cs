@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using uzLib.Lite.Core;
+using uzLib.Lite.Extensions;
 
 namespace EasyConsole
 {
@@ -9,6 +12,12 @@ namespace EasyConsole
         {
             Output.DisplayPrompt(prompt);
             return ReadInt(min, max);
+        }
+
+        public static int[] ReadInts(string prompt, int min, int max)
+        {
+            Output.DisplayPrompt(prompt);
+            return ReadInts(min, max);
         }
 
         public static int ReadInt(int min, int max)
@@ -22,6 +31,62 @@ namespace EasyConsole
             }
 
             return value;
+        }
+
+        public static int[] ReadInts(int min, int max)
+        {
+            IEnumerable<int> values = ReadInts();
+
+            while (values.Any(value => value < min || value > max))
+            {
+                Output.DisplayPrompt("Please enter an integer/s between {0} and {1} (inclusive)", min, max);
+                values = ReadInts();
+            }
+
+            return values.ToArray();
+        }
+
+        public static IEnumerable<int> ReadInts()
+        {
+            var output = ConsoleOutput.ReadLineOrKey();
+            string input;
+
+            if (output.IsExitKey())
+            {
+                Program.Instance.NavigateBack();
+                yield break;
+            }
+            else
+                input = output.GetValue();
+
+            int value;
+            bool isMultiple;
+
+            do
+            {
+                Output.DisplayPrompt("Please enter an integer");
+                output = ConsoleOutput.ReadLineOrKey();
+
+                if (output.IsExitKey())
+                {
+                    Program.Instance.NavigateBack();
+                    yield break;
+                }
+                else
+                {
+                    input = output.GetValue();
+                    isMultiple = input.SeparatedCommaNumbers();
+                }
+            }
+            while (!int.TryParse(input, out value) || isMultiple);
+
+            if (!isMultiple)
+                yield return value;
+            else
+            {
+                foreach (string val in input.Split(','))
+                    yield return int.Parse(val.Trim(' '));
+            }
         }
 
         public static int ReadInt()

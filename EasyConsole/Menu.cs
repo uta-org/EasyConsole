@@ -31,12 +31,14 @@ namespace EasyConsole
             for (int i = 0; i < Options.Count; i++)
                 Console.WriteLine("{0}. {1}", i + 1, Options[i].Name);
 
-            int choice;
-            do
-                choice = SelectedOption.HasValue ? SelectedOption.Value : (Input.ReadInt(caption, min: 1, max: Options.Count) - 1);
-            while (Options[choice].Callback == null);
+            int[] choices;
 
-            Options[choice].Callback();
+            do
+                choices = SelectedOption.HasValue ? new[] { SelectedOption.Value } : (Input.ReadInts(caption, min: 1, max: Options.Count));
+            while (choices.Length == 1 && Options[choices[0] - 1].Callback == null || choices.Length > 1);
+
+            foreach (int choice in choices)
+                Options[choice - 1].Callback?.Invoke();
         }
 
         public Menu Add(string option, Action callback)
