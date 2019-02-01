@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace EasyConsole
 {
@@ -12,6 +14,15 @@ namespace EasyConsole
 
         public Action EmptyAction { get; protected set; }
 
+        private Func<IEnumerable<Option>> GetOptions { get; set; }
+
+        public MenuPage(string title, Program program, Func<IEnumerable<Option>> options = null)
+            : this(title, program, options?.Invoke().ToArray())
+
+        {
+            GetOptions = options;
+        }
+
         public MenuPage(string title, Program program, params Option[] options)
             : base(title, program)
         {
@@ -21,12 +32,16 @@ namespace EasyConsole
             SetOptions(options);
         }
 
-        public void SetOptions(params Option[] options)
+        internal void UpdateOptions(Menu menu = null)
+        {
+            if (GetOptions != null)
+                Menu.UpdateOptions(GetOptions(), menu);
+        }
+
+        private void SetOptions(IEnumerable<Option> options)
         {
             if (options == null)
             {
-                //throw new ArgumentNullException("options");
-
                 IsEmpty = true;
                 return;
             }

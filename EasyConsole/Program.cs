@@ -115,6 +115,30 @@ namespace EasyConsole
             return CurrentPage as T;
         }
 
+        /// <summary>
+        /// Navigates the back.
+        /// </summary>
+        /// <param name="forceUpdate">if set to <c>true</c> [force update].</param>
+        /// <param name="prePop">if set to <c>false</c> [then this will stay on the same page, because it'll not NavigateBack].</param>
+        /// <returns></returns>
+        public Page NavigateBack(bool forceUpdate, bool prePop = true)
+        {
+            if (forceUpdate)
+            {
+                if (prePop)
+                    History.Pop();
+
+                (CurrentPage as MenuPage).UpdateOptions();
+
+                Console.Clear();
+                CurrentPage.Display();
+            }
+            else
+                return NavigateBack(null);
+
+            return CurrentPage;
+        }
+
         public Page NavigateBack()
         {
             return NavigateBack(null);

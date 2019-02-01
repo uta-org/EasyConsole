@@ -47,6 +47,14 @@ namespace EasyConsole
             return this;
         }
 
+        internal void UpdateOptions(IEnumerable<Option> options, Menu menu = null)
+        {
+            if (menu == null)
+                Options = options.ToList();
+            else
+                menu.Options = options.ToList();
+        }
+
         public bool Contains(string option)
         {
             return Options.FirstOrDefault((op) => op.Name.Equals(option)) != null;
