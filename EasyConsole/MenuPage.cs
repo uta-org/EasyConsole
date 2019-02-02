@@ -14,10 +14,12 @@ namespace EasyConsole
 
         public Action EmptyAction { get; protected set; }
 
-        private Func<IEnumerable<Option>> GetOptions { get; set; }
+        public delegate IEnumerable<Option> GetOptionsDelegate();
 
-        public MenuPage(string title, Program program, Func<IEnumerable<Option>> options = null)
-            : this(title, program, options?.Invoke()?.ToArray())
+        private Func<Program, GetOptionsDelegate> GetOptions { get; set; }
+
+        public MenuPage(string title, Program program, Func<Program, GetOptionsDelegate> options = null)
+            : this(title, program, options?.Invoke(program)?.Invoke()?.ToArray())
 
         {
             GetOptions = options;
@@ -35,7 +37,7 @@ namespace EasyConsole
         internal void UpdateOptions(Menu menu = null)
         {
             if (GetOptions != null)
-                Menu.UpdateOptions(GetOptions(), Program, menu);
+                Menu.UpdateOptions(GetOptions?.Invoke(Program)?.Invoke(), Program, menu);
         }
 
         private void SetOptions(IEnumerable<Option> options)
