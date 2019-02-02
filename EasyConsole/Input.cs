@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using uzLib.Lite.Core;
 using uzLib.Lite.Extensions;
+using System.Drawing;
 
 namespace EasyConsole
 {
@@ -30,7 +31,7 @@ namespace EasyConsole
 
             while (value < min || value > max)
             {
-                Output.DisplayPrompt("Please enter an integer between {0} and {1} (inclusive)", min, max);
+                Output.DisplayPrompt("Please enter an integer between {0} and {1} (inclusive)", Color.Red, min, max);
                 value = ReadInt();
             }
 
@@ -43,7 +44,7 @@ namespace EasyConsole
 
             while (values.Any(value => value < min || value > max))
             {
-                Output.DisplayPrompt("Please enter an integer/s between {0} and {1} (inclusive)", min, max);
+                Output.DisplayPrompt("Please enter an integer/s between {0} and {1} (inclusive)", Color.Red, min, max);
                 values = ReadInts().ToArray();
             }
 
@@ -74,7 +75,7 @@ namespace EasyConsole
             if (!firstParse)
                 do
                 {
-                    Output.DisplayPrompt("Please enter an integer");
+                    Output.DisplayPrompt("Please enter an integer", Color.Yellow);
                     output = ConsoleOutput.ReadLineOrKey();
 
                     if (output.IsExitKey())
@@ -116,7 +117,7 @@ namespace EasyConsole
 
             while (!int.TryParse(input, out value))
             {
-                Output.DisplayPrompt("Please enter an integer");
+                Output.DisplayPrompt("Please enter an integer", Color.Yellow);
                 output = ConsoleOutput.ReadLineOrKey();
 
                 if (output.IsExitKey())

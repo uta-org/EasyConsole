@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Drawing;
+
+using Console = Colorful.Console;
 
 namespace EasyConsole
 {
@@ -59,7 +62,7 @@ namespace EasyConsole
                         caption = caption.Replace(":", $" {WrongInput}:");
 
                         Console.SetCursorPosition(lastLeftPad, Console.CursorTop);
-                        Console.Write(caption);
+                        Console.Write(caption, Color.Yellow);
                     }
                 }
 
