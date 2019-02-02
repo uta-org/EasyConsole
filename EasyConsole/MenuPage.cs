@@ -14,17 +14,17 @@ namespace EasyConsole
 
         public Action EmptyAction { get; protected set; }
 
-        public delegate IEnumerable<Option> GetOptionsDelegate();
+        private Func<GetOptionsDelegate> GetOptions { get; set; }
 
-        private Func<Program, GetOptionsDelegate> GetOptions { get; set; }
-
-        public MenuPage(string title, Program program, Func<Program, GetOptionsDelegate> options = null)
-            : this(title, program, options?.Invoke(program)?.Invoke()?.ToArray())
+        public MenuPage(string title, Program program, Func<GetOptionsDelegate> options = null)
+            : this(title, program, options?.Invoke()?.Invoke()?.ToArray())
 
         {
             Instance = this;
 
+            Menu = new Menu(options);
             CurrentProgram = program;
+
             GetOptions = options;
         }
 
@@ -39,10 +39,10 @@ namespace EasyConsole
             SetOptions(options);
         }
 
-        internal void UpdateOptions(Menu menu = null)
+        internal void UpdateOptions()
         {
             if (GetOptions != null)
-                Menu.UpdateOptions(GetOptions?.Invoke(Program)?.Invoke(), Program, menu);
+                Menu.UpdateOptions(Program);
         }
 
         private void SetOptions(IEnumerable<Option> options)
@@ -53,8 +53,7 @@ namespace EasyConsole
                 return;
             }
 
-            foreach (var option in options)
-                Menu.Add(option);
+            Menu.AddRange(options);
         }
 
         public override void Display(string caption = "Choose an option: ")
@@ -70,7 +69,7 @@ namespace EasyConsole
             Menu.AddBackIfEnabled(Program);
 
             Menu.SetSelectOption(SelectedOption);
-            Menu.Display(caption);
+            Menu.Display(MultipleChoices, caption);
         }
     }
 }

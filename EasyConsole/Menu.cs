@@ -12,6 +12,8 @@ namespace EasyConsole
         private const string GoBackCaption = "Go back",
                              WrongInput = "(select another option)";
 
+        private Func<GetOptionsDelegate> GetOptions { get; set; }
+
         private IList<Option> Options { get; set; }
 
         private int? SelectedOption { get; set; }
@@ -19,6 +21,12 @@ namespace EasyConsole
         public Menu()
         {
             Options = new List<Option>();
+        }
+
+        public Menu(Func<GetOptionsDelegate> getOptions)
+        {
+            Options = getOptions?.Invoke()?.Invoke().ToList();
+            GetOptions = getOptions;
         }
 
         public void SetSelectOption(int? option)
@@ -32,15 +40,17 @@ namespace EasyConsole
                 SelectedOption = option.Value;
         }
 
-        public void Display(string caption = "Choose an option:")
+        public void DisplayOptions()
         {
             for (int i = 0; i < Options.Count; i++)
                 Console.WriteLine("{0}. {1}", i + 1, Options[i].Name);
+        }
 
+        public void DisplayCaption(bool multipleChoices, string caption = "Choose an option:")
+        {
             int[] choices;
             bool alreadyPrompted = false;
-            int lastLeftPad = Console.CursorLeft,
-                leftPad = lastLeftPad + caption.Length + WrongInput.Length + 1;
+            int lastLeftPad = Console.CursorLeft, leftPad = lastLeftPad + caption.Length + WrongInput.Length + 1;
 
             do
             {
@@ -67,13 +77,22 @@ namespace EasyConsole
                     }
                 }
 
-                choices = SelectedOption.HasValue ? new[] { SelectedOption.Value } : (Input.ReadInts(caption, min: 1, max: Options.Count, displayPrompt: !alreadyPrompted));
+                choices = SelectedOption.HasValue ? new[] { SelectedOption.Value } :
+                    (multipleChoices ? Input.ReadInts(caption, min: 1, max: Options.Count, displayPrompt: !alreadyPrompted) :
+                                new[] { Input.ReadInt(caption, min: 1, max: Options.Count, displayPrompt: !alreadyPrompted) });
+
                 alreadyPrompted = true;
             }
             while (choices.Length == 1 && Options[choices[0] - 1].Callback == null || choices.Length > 1);
 
             foreach (int choice in choices)
                 Options[choice - 1].Callback?.Invoke();
+        }
+
+        public void Display(bool multipleChoices, string caption = "Choose an option:")
+        {
+            DisplayOptions();
+            DisplayCaption(multipleChoices, caption);
         }
 
         public Menu Add(string option, Action callback)
@@ -87,17 +106,35 @@ namespace EasyConsole
             return this;
         }
 
-        internal void UpdateOptions(IEnumerable<Option> options, Program program, Menu menu = null)
+        public Menu AddRange(params Option[] options)
+        {
+            return AddRange(options.AsEnumerable());
+        }
+
+        public Menu AddRange(IEnumerable<Option> options)
+        {
+            foreach (var option in options)
+                Options.Add(option);
+
+            return this;
+        }
+
+        public void UpdateOptions(Program program)
+        {
+            if (GetOptions == null)
+                throw new Exception("You must set 'GetOptions' calling its ctor.");
+
+            UpdateOptions(GetOptions?.Invoke()?.Invoke(), program);
+        }
+
+        private void UpdateOptions(IEnumerable<Option> options, Program program)
         {
             var opts = options.ToList();
 
             if (program.NavigationEnabled && !Contains(opts, GoBackCaption))
                 opts.Add(BackOption(program));
 
-            if (menu == null)
-                Options = opts.ToList();
-            else
-                menu.Options = opts.ToList();
+            Options = opts.ToList();
         }
 
         internal void AddBackIfEnabled(Program program)

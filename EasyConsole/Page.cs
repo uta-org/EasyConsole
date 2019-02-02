@@ -12,6 +12,8 @@ namespace EasyConsole
 
         public int? SelectedOption { get; set; }
 
+        public bool MultipleChoices { get; set; }
+
         public Page(string title, Program program)
         {
             Title = title;
