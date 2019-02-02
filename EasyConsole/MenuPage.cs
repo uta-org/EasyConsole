@@ -17,7 +17,7 @@ namespace EasyConsole
         private Func<IEnumerable<Option>> GetOptions { get; set; }
 
         public MenuPage(string title, Program program, Func<IEnumerable<Option>> options = null)
-            : this(title, program, options?.Invoke().ToArray())
+            : this(title, program, options?.Invoke()?.ToArray())
 
         {
             GetOptions = options;
@@ -35,7 +35,7 @@ namespace EasyConsole
         internal void UpdateOptions(Menu menu = null)
         {
             if (GetOptions != null)
-                Menu.UpdateOptions(GetOptions(), menu);
+                Menu.UpdateOptions(GetOptions(), Program, menu);
         }
 
         private void SetOptions(IEnumerable<Option> options)
@@ -60,8 +60,7 @@ namespace EasyConsole
 
             base.Display();
 
-            if (Program.NavigationEnabled && !Menu.Contains("Go back"))
-                Menu.Add("Go back", () => { Program.NavigateBack(); });
+            Menu.AddBackIfEnabled(Program);
 
             Menu.SetSelectOption(SelectedOption);
             Menu.Display(caption);
