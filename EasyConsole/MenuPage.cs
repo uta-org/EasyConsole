@@ -22,12 +22,17 @@ namespace EasyConsole
             : this(title, program, options?.Invoke(program)?.Invoke()?.ToArray())
 
         {
+            Instance = this;
+
+            CurrentProgram = program;
             GetOptions = options;
         }
 
         public MenuPage(string title, Program program, params Option[] options)
             : base(title, program)
         {
+            Instance = this;
+
             Menu = new Menu();
             CurrentProgram = program;
 

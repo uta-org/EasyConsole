@@ -6,7 +6,8 @@ namespace EasyConsole
 {
     public class Menu
     {
-        private const string GoBackCaption = "Go back";
+        private const string GoBackCaption = "Go back",
+                             WrongInput = "(select another option)";
 
         private IList<Option> Options { get; set; }
 
@@ -34,9 +35,37 @@ namespace EasyConsole
                 Console.WriteLine("{0}. {1}", i + 1, Options[i].Name);
 
             int[] choices;
+            bool alreadyPrompted = false;
+            int lastLeftPad = Console.CursorLeft,
+                leftPad = lastLeftPad + caption.Length + WrongInput.Length + 1;
 
             do
-                choices = SelectedOption.HasValue ? new[] { SelectedOption.Value } : (Input.ReadInts(caption, min: 1, max: Options.Count));
+            {
+                if (alreadyPrompted)
+                {
+                    if (caption.Contains(WrongInput))
+                    {
+                        Console.SetCursorPosition(leftPad, Console.CursorTop - 1);
+                        Console.Write(' ');
+                        Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                    }
+                    else
+                    {
+                        Console.SetCursorPosition(lastLeftPad, Console.CursorTop - 1);
+
+                        for (int i = 0; i < leftPad; i++)
+                            Console.Write(' ');
+
+                        caption = caption.Replace(":", $" {WrongInput}:");
+
+                        Console.SetCursorPosition(lastLeftPad, Console.CursorTop);
+                        Console.Write(caption);
+                    }
+                }
+
+                choices = SelectedOption.HasValue ? new[] { SelectedOption.Value } : (Input.ReadInts(caption, min: 1, max: Options.Count, displayPrompt: !alreadyPrompted));
+                alreadyPrompted = true;
+            }
             while (choices.Length == 1 && Options[choices[0] - 1].Callback == null || choices.Length > 1);
 
             foreach (int choice in choices)

@@ -8,15 +8,19 @@ namespace EasyConsole
 {
     public static class Input
     {
-        public static int ReadInt(string prompt, int min, int max)
+        public static int ReadInt(string prompt, int min, int max, bool displayPrompt = true)
         {
-            Output.DisplayPrompt(prompt);
+            if (displayPrompt)
+                Output.DisplayPrompt(prompt);
+
             return ReadInt(min, max);
         }
 
-        public static int[] ReadInts(string prompt, int min, int max)
+        public static int[] ReadInts(string prompt, int min, int max, bool displayPrompt = true)
         {
-            Output.DisplayPrompt(prompt);
+            if (displayPrompt)
+                Output.DisplayPrompt(prompt);
+
             return ReadInts(min, max);
         }
 
