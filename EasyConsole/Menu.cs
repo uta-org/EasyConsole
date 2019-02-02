@@ -46,7 +46,7 @@ namespace EasyConsole
             {
                 if (alreadyPrompted)
                 {
-                    if (caption.Contains(WrongInput))
+                    if (caption.Contains("{0}"))
                     {
                         Console.SetCursorPosition(leftPad, Console.CursorTop - 1);
                         Console.Write(' ');
@@ -59,10 +59,11 @@ namespace EasyConsole
                         for (int i = 0; i < leftPad; i++)
                             Console.Write(' ');
 
-                        caption = caption.Replace(":", $" {WrongInput}:");
+                        caption = caption.Replace(":", " {0}:");
+                        string[] _wrongInput = new[] { WrongInput };
 
                         Console.SetCursorPosition(lastLeftPad, Console.CursorTop);
-                        Console.Write(caption, Color.Yellow);
+                        Console.WriteFormatted(caption, Color.Yellow, Color.LightGray, _wrongInput);
                     }
                 }
 
