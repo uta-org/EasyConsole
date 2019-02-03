@@ -18,6 +18,8 @@ namespace EasyConsole
 
         private int? SelectedOption { get; set; }
 
+        public int Count => Options.Count;
+
         public Menu()
         {
             Options = new List<Option>();
@@ -49,6 +51,7 @@ namespace EasyConsole
         public void DisplayCaption(bool multipleChoices, string caption = "Choose an option:")
         {
             int[] choices;
+            bool keepWhile;
 
             do
             {
@@ -58,9 +61,12 @@ namespace EasyConsole
                     (multipleChoices ? Input.ReadInts(caption, min: 1, max: Options.Count) :
                                 new[] { Input.ReadInt(caption, min: 1, max: Options.Count) });
 
-                Input.WrongInputCaption = WrongInput;
+                keepWhile = choices.Length == 1 && Options[choices[0] - 1].Callback == null || choices.Length > 1 && choices.Any(choice => Options[choice - 1].Callback == null);
+
+                if (keepWhile)
+                    Input.WrongInputCaption = WrongInput;
             }
-            while (choices.Length == 1 && Options[choices[0] - 1].Callback == null || choices.Length > 1);
+            while (keepWhile);
 
             Input.ResetWrongCaption();
 

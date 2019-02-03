@@ -23,13 +23,15 @@ namespace EasyConsole
             {
                 m_wrongInputCaption = value;
                 m_curPrompt = WrongCaptions.IndexOf(m_wrongInputCaption);
+
+                m_showWarning = true;
             }
         }
 
         public static List<string> WrongCaptions { get; private set; }
 
         private static int m_rightPad, m_curPrompt, m_lastPrompt;
-        private static bool m_alreadyPrompted;
+        private static bool m_alreadyPrompted, m_showWarning;
         private static string m_wrongInputCaption;
 
         static Input()
@@ -44,6 +46,8 @@ namespace EasyConsole
 
             WrongCaptions.Insert(0, input);
             m_lastPrompt = WrongCaptions.Count - 1;
+
+            m_showWarning = false;
         }
 
         public static void ResetWrongCaption()
@@ -184,6 +188,8 @@ namespace EasyConsole
 
         private static bool GetOutput(ref string prompt, out ConsoleOutput output, out string inputResult)
         {
+            bool keepWhile;
+
             inputResult = "";
 
             do
@@ -200,9 +206,12 @@ namespace EasyConsole
                 else if (!output.IsKey())
                     inputResult = output.GetValue();
 
-                prompt = ShowWarning(prompt, output.CurrentRightPad);
+                keepWhile = output.IsKey() || string.IsNullOrEmpty(inputResult);
+
+                if (m_showWarning || keepWhile)
+                    prompt = ShowWarning(prompt, output.CurrentRightPad);
             }
-            while (output.IsKey() || string.IsNullOrEmpty(inputResult));
+            while (keepWhile);
 
             WrongInputCaption = WrongCaptions.First();
 
@@ -268,7 +277,6 @@ namespace EasyConsole
                     for (int i = 0; i < defaultRightPad; i++)
                         Console.Write(' ');
 
-                    // && !string.IsNullOrEmpty(prompt)
                     prompt = containsPoints ? prompt.Replace(":", " {0}:") : "{0}:";
 
                     Console.SetCursorPosition(0, Console.CursorTop);
@@ -282,7 +290,7 @@ namespace EasyConsole
                 {
                     Console.SetCursorPosition(defaultRightPad, Console.CursorTop - 1);
                     Console.Write(' ');
-                    Console.SetCursorPosition(Console.CursorLeft - 2, Console.CursorTop);
+                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
                 }
             }
 
