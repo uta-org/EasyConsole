@@ -5,16 +5,62 @@ using uzLib.Lite.Core;
 using uzLib.Lite.Extensions;
 using System.Drawing;
 
+using Console = Colorful.Console;
+
 namespace EasyConsole
 {
     public static class Input
     {
+        private const string WrongInput = "(invalid input)";
+
+        public static string WrongInputCaption
+        {
+            get
+            {
+                return WrongCaptions[m_lastPrompt];
+            }
+            set
+            {
+                m_wrongInputCaption = value;
+                m_curPrompt = WrongCaptions.IndexOf(m_wrongInputCaption);
+            }
+        }
+
+        public static List<string> WrongCaptions { get; private set; }
+
+        private static int m_rightPad, m_curPrompt, m_lastPrompt;
+        private static bool m_alreadyPrompted;
+        private static string m_wrongInputCaption;
+
+        static Input()
+        {
+            ResetWrongCaption();
+        }
+
+        public static void AddWrongInput(string input)
+        {
+            if (WrongCaptions.Contains(input))
+                return;
+
+            WrongCaptions.Insert(0, input);
+            m_lastPrompt = WrongCaptions.Count - 1;
+        }
+
+        public static void ResetWrongCaption()
+        {
+            m_wrongInputCaption = WrongInput;
+            m_alreadyPrompted = false;
+
+            WrongCaptions = new List<string>();
+            WrongCaptions.Add(WrongInput);
+        }
+
         public static int ReadInt(string prompt, int min, int max, bool displayPrompt = true)
         {
-            if (displayPrompt)
+            if (displayPrompt && !m_alreadyPrompted)
                 Output.DisplayPrompt(prompt);
 
-            return ReadInt(min, max);
+            return ReadInt(min, max, prompt);
         }
 
         public static int[] ReadInts(string prompt, int min, int max, bool displayPrompt = true)
@@ -22,12 +68,12 @@ namespace EasyConsole
             if (displayPrompt)
                 Output.DisplayPrompt(prompt);
 
-            return ReadInts(min, max);
+            return ReadInts(min, max, prompt);
         }
 
-        public static int ReadInt(int min, int max)
+        public static int ReadInt(int min, int max, string prompt = "")
         {
-            int value = ReadInt();
+            int value = ReadInt(prompt);
 
             while (value < min || value > max)
             {
@@ -38,9 +84,9 @@ namespace EasyConsole
             return value;
         }
 
-        public static int[] ReadInts(int min, int max)
+        public static int[] ReadInts(int min, int max, string prompt = "")
         {
-            int[] values = ReadInts().ToArray();
+            int[] values = ReadInts(prompt).ToArray();
 
             while (values.Any(value => value < min || value > max))
             {
@@ -51,11 +97,17 @@ namespace EasyConsole
             return values;
         }
 
-        public static IEnumerable<int> ReadInts()
+        public static IEnumerable<int> ReadInts(string prompt = "")
         {
-            var output = ConsoleOutput.ReadLineOrKey();
+            ConsoleOutput output;
+            string inputResult;
 
-            string input;
+            if (!GetOutput(ref prompt, out output, out inputResult))
+            {
+                //Console.WriteLine("There was problem reading the output.", Color.Red);
+                yield break;
+            }
+
             bool isMultiple;
 
             if (output.IsExitKey())
@@ -65,14 +117,14 @@ namespace EasyConsole
             }
             else
             {
-                input = output.GetValue();
-                isMultiple = input.CheckCommaNumbers();
+                inputResult = output.GetValue();
+                isMultiple = inputResult.CheckCommaNumbers();
             }
 
             int value;
-            bool firstParse = int.TryParse(input, out value);
+            bool firstParse = int.TryParse(inputResult, out value);
 
-            if (!firstParse)
+            if (!firstParse && !isMultiple)
                 do
                 {
                     Output.DisplayPrompt("Please enter an integer", Color.Yellow);
@@ -85,37 +137,35 @@ namespace EasyConsole
                     }
                     else
                     {
-                        input = output.GetValue();
-                        isMultiple = input.CheckCommaNumbers();
+                        inputResult = output.GetValue();
+                        isMultiple = inputResult.CheckCommaNumbers();
                     }
                 }
-                while (!int.TryParse(input, out value) || isMultiple);
+                while (!int.TryParse(inputResult, out value) || isMultiple);
 
             if (!isMultiple)
                 yield return value;
             else
             {
-                foreach (string val in input.Split(','))
+                foreach (string val in inputResult.Split(','))
                     yield return int.Parse(val.Trim(' '));
             }
         }
 
-        public static int ReadInt()
+        public static int ReadInt(string prompt = "")
         {
-            var output = ConsoleOutput.ReadLineOrKey();
-            string input;
+            ConsoleOutput output;
+            string inputResult;
 
-            if (output.IsExitKey())
+            if (!GetOutput(ref prompt, out output, out inputResult))
             {
-                Program.Instance.NavigateBack();
+                //Console.WriteLine("There was problem reading the output.", Color.Red);
                 return 0;
             }
-            else
-                input = output.GetValue();
 
             int value;
 
-            while (!int.TryParse(input, out value))
+            while (!int.TryParse(inputResult, out value))
             {
                 Output.DisplayPrompt("Please enter an integer", Color.Yellow);
                 output = ConsoleOutput.ReadLineOrKey();
@@ -126,10 +176,37 @@ namespace EasyConsole
                     return 0;
                 }
                 else
-                    input = output.GetValue();
+                    inputResult = output.GetValue();
             }
 
             return value;
+        }
+
+        private static bool GetOutput(ref string prompt, out ConsoleOutput output, out string inputResult)
+        {
+            inputResult = "";
+
+            do
+            {
+                //WrongInputCaption = WrongCaptions.Last();
+
+                output = ConsoleOutput.ReadLineOrKey();
+
+                if (output.IsExitKey())
+                {
+                    Program.Instance.NavigateBack();
+                    return false;
+                }
+                else if (!output.IsKey())
+                    inputResult = output.GetValue();
+
+                prompt = ShowWarning(prompt, output.CurrentRightPad);
+            }
+            while (output.IsKey() || string.IsNullOrEmpty(inputResult));
+
+            WrongInputCaption = WrongCaptions.First();
+
+            return true;
         }
 
         public static string ReadString(string prompt)
@@ -164,6 +241,52 @@ namespace EasyConsole
             menu.Display(false);
 
             return choice;
+        }
+
+        private static string ShowWarning(string prompt, int defaultRightPad)
+        {
+            bool containsPoints = prompt.Contains(":");
+
+            if (!m_alreadyPrompted)
+            {
+                m_rightPad = defaultRightPad + prompt.Length + WrongInput.Length + 1;
+                m_alreadyPrompted = true;
+            }
+
+            if (m_alreadyPrompted)
+            {
+                bool firstDelete = !prompt.Contains("{0}");
+
+                // This is buggy
+                if (firstDelete || m_lastPrompt != m_curPrompt)
+                {
+                    if (m_lastPrompt != m_curPrompt)
+                        m_rightPad = defaultRightPad + prompt.Length + WrongInput.Length + 1;
+
+                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+
+                    for (int i = 0; i < defaultRightPad; i++)
+                        Console.Write(' ');
+
+                    // && !string.IsNullOrEmpty(prompt)
+                    prompt = containsPoints ? prompt.Replace(":", " {0}:") : "{0}:";
+
+                    Console.SetCursorPosition(0, Console.CursorTop);
+
+                    string[] _wrongInput = new[] { WrongInputCaption };
+                    Console.WriteFormatted(prompt, Color.Yellow, Color.LightGray, _wrongInput);
+
+                    m_lastPrompt = m_curPrompt;
+                }
+                else
+                {
+                    Console.SetCursorPosition(defaultRightPad, Console.CursorTop - 1);
+                    Console.Write(' ');
+                    Console.SetCursorPosition(Console.CursorLeft - 2, Console.CursorTop);
+                }
+            }
+
+            return prompt;
         }
     }
 }

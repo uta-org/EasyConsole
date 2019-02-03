@@ -49,41 +49,20 @@ namespace EasyConsole
         public void DisplayCaption(bool multipleChoices, string caption = "Choose an option:")
         {
             int[] choices;
-            bool alreadyPrompted = false;
-            int lastLeftPad = Console.CursorLeft, leftPad = lastLeftPad + caption.Length + WrongInput.Length + 1;
 
             do
             {
-                if (alreadyPrompted)
-                {
-                    if (caption.Contains("{0}"))
-                    {
-                        Console.SetCursorPosition(leftPad, Console.CursorTop - 1);
-                        Console.Write(' ');
-                        Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                    }
-                    else
-                    {
-                        Console.SetCursorPosition(lastLeftPad, Console.CursorTop - 1);
-
-                        for (int i = 0; i < leftPad; i++)
-                            Console.Write(' ');
-
-                        caption = caption.Replace(":", " {0}:");
-                        string[] _wrongInput = new[] { WrongInput };
-
-                        Console.SetCursorPosition(lastLeftPad, Console.CursorTop);
-                        Console.WriteFormatted(caption, Color.Yellow, Color.LightGray, _wrongInput);
-                    }
-                }
+                Input.AddWrongInput(WrongInput);
 
                 choices = SelectedOption.HasValue ? new[] { SelectedOption.Value } :
-                    (multipleChoices ? Input.ReadInts(caption, min: 1, max: Options.Count, displayPrompt: !alreadyPrompted) :
-                                new[] { Input.ReadInt(caption, min: 1, max: Options.Count, displayPrompt: !alreadyPrompted) });
+                    (multipleChoices ? Input.ReadInts(caption, min: 1, max: Options.Count) :
+                                new[] { Input.ReadInt(caption, min: 1, max: Options.Count) });
 
-                alreadyPrompted = true;
+                Input.WrongInputCaption = WrongInput;
             }
             while (choices.Length == 1 && Options[choices[0] - 1].Callback == null || choices.Length > 1);
+
+            Input.ResetWrongCaption();
 
             foreach (int choice in choices)
                 Options[choice - 1].Callback?.Invoke();
