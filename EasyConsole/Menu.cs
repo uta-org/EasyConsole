@@ -71,7 +71,10 @@ namespace EasyConsole
             Input.ResetWrongCaption();
 
             foreach (int choice in choices)
+            {
                 Options[choice - 1].Callback?.Invoke();
+                Options[choice - 1].IndexedCallback?.Invoke(choice - 1);
+            }
         }
 
         public void Display(bool multipleChoices, string caption = "Choose an option:")
