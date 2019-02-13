@@ -131,7 +131,7 @@ namespace EasyConsole
             if (!firstParse && !isMultiple)
                 do
                 {
-                    Output.DisplayPrompt("Please enter an integer", Color.Yellow);
+                    Output.DisplayPrompt("Please enter an integer:", Color.Yellow);
                     output = ConsoleOutput.ReadLineOrKey();
 
                     if (output.IsExitKey())
@@ -171,7 +171,7 @@ namespace EasyConsole
 
             while (!int.TryParse(inputResult, out value))
             {
-                Output.DisplayPrompt("Please enter an integer", Color.Yellow);
+                Output.DisplayPrompt("Please enter an integer:", Color.Yellow);
                 output = ConsoleOutput.ReadLineOrKey();
 
                 if (output.IsExitKey())

@@ -39,12 +39,6 @@ namespace EasyConsole
 
         public virtual Program Run()
         {
-            // This creates a bug
-            //Console.CancelKeyPress += delegate
-            //{
-            //    NavigateBack();
-            //};
-
             try
             {
                 Console.Title = Title;
@@ -77,6 +71,19 @@ namespace EasyConsole
                 Pages.Add(pageType, page);
         }
 
+        public T AddPage<T>(Page page)
+            where T : Page
+        {
+            Type pageType = page.GetType();
+
+            if (Pages.ContainsKey(pageType))
+                Pages[pageType] = page;
+            else
+                Pages.Add(pageType, page);
+
+            return (T)Pages[pageType];
+        }
+
         public void NavigateHome()
         {
             while (History.Count > 1)
@@ -90,15 +97,16 @@ namespace EasyConsole
         {
             Type pageType = typeof(T);
 
-            if (CurrentPage != null && CurrentPage.GetType() == pageType)
-                return CurrentPage as T;
+            // This causes a bug... (If we try to display twice the same pageType, this will not update to the new one)
+            //if (CurrentPage != null && CurrentPage.GetType() == pageType)
+            //    return CurrentPage as T;
 
             // leave the current page
 
             // select the new page
             Page nextPage;
             if (!Pages.TryGetValue(pageType, out nextPage))
-                throw new KeyNotFoundException("The given page \"{0}\" was not present in the program".Format(pageType));
+                throw new KeyNotFoundException($"The given page \"{pageType.Name}\" was not present in the program");
 
             // enter the new page
             History.Push(nextPage);

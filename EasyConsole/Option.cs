@@ -6,7 +6,7 @@ namespace EasyConsole
     {
         public string Name { get; private set; }
         public Action Callback { get; private set; }
-        public Action<int> IndexedCallback { get; private set; }
+        //public Action<int> IndexedCallback { get; private set; }
 
         public Option(string name)
         {
@@ -19,11 +19,11 @@ namespace EasyConsole
             Callback = callback;
         }
 
-        public Option(string name, Action<int> indexedCallback)
-        {
-            Name = name;
-            IndexedCallback = indexedCallback;
-        }
+        //public Option(string name, Action<int> indexedCallback)
+        //{
+        //    Name = name;
+        //    IndexedCallback = indexedCallback;
+        //}
 
         public override string ToString()
         {
