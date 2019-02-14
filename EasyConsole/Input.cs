@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using uzLib.Lite.Core;
 using uzLib.Lite.Extensions;
-using System.Drawing;
-
 using Console = Colorful.Console;
 
 namespace EasyConsole

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using uzLib.Lite.Core;
-using uzLib.Lite.Extensions;
 
 namespace EasyConsole
 {
